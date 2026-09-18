@@ -5,6 +5,12 @@ FROM node:20-bookworm-slim
 COPY . /metrics
 WORKDIR /metrics
 
+# Puppeteer: NUNCA baixar Chrome no 'npm ci' — a imagem usa o google-chrome-stable
+# do apt. Precisa vir ANTES do RUN: no upstream vinha depois, e em 2026 o
+# postinstall do puppeteer 21 pendura tentando baixar um Chrome de 2023.
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
 # Setup
 RUN chmod +x /metrics/source/app/action/index.mjs \
   # Install latest chrome dev package, fonts to support major charsets and skip chromium download on puppeteer install
@@ -30,8 +36,7 @@ RUN chmod +x /metrics/source/app/action/index.mjs \
   && npm run build
 
 # Environment variables
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-ENV PUPPETEER_BROWSER_PATH "google-chrome-stable"
+ENV PUPPETEER_BROWSER_PATH="google-chrome-stable"
 
 # Execute GitHub action
 ENTRYPOINT node /metrics/source/app/action/index.mjs
